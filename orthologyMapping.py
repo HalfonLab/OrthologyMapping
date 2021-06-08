@@ -4,7 +4,7 @@
 #
 # (c) Hasiba Asma July 2020
 #
-# use after post proc to get ortholog/paralog
+# use after post processing of SCRMshaw to get ortholog/paralog wrt DMEL
 # input files can be downloaded from https://ezmeta.unige.ch/i5k/
 #
 ################################################################
