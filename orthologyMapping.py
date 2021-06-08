@@ -52,26 +52,28 @@ def paralogs(nameoflist,filepc):
 			#listOflist.append(row)
 	return(listOflist)
 
-
+#this function is used to find a value and return the index of that value
 def find(value,matrix):
 	for list in matrix:
 		if value in list:
 			return [matrix.index(list),list.index(value)]
 	return -1
-	
+
+#this function is used to create a dictionary, when there is need to convert gene names using the file provided by user convGeneSet
 def conv_dict(nameOfCDict,fileC):
 	with open(fileC,'r') as fi:
 		rows = (line.split('\t') for line in fi)
 		nameOfCDict = {row[1].strip():row[0] for row in rows}
 	return(nameOfCDict)
 	
-
+# this function creates a dictionary to store FBgn gene symbol of drosophilla
 def geneSymbol_dict(nameofSDict,fileS):
 	with open(fileS,'r') as fi:
 		rows = (line.split('\t') for line in fi if not (line.startswith('#') or line.strip()==''))
 		nameofSDict = {row[0]:row[2] for row in rows}
 	return(nameofSDict)
 
+#this function creates two dictionaries (ortholog and paralog) using x_final file created before..
 def orthologs_dict(nameOfODict_orth,nameOfDict_para,fileO):
 	nameOfODict_orth={}
 	nameOfDict_para={}
