@@ -3,7 +3,7 @@
 # Orthology mapping- 
 #
 # (c) Hasiba Asma July 2020
-#
+# Commented: June 2021
 # use after post processing of SCRMshaw to get ortholog/paralog wrt DMEL
 # input files can be downloaded from https://ezmeta.unige.ch/i5k/
 #
@@ -119,43 +119,59 @@ def main():
 	separator=args.separator
 	scrmshawOutput=(args.scrmshawOutput)
 	scrmshawOutputPath=os.path.abspath(scrmshawOutput)
-	
+
+	# Depending on naming convention of genes used for SCRMshaw and orthoDB, you might need to convert them to same convention first
+	#and if there is need of conversion (or conversion=true), user need to provide the respective file needed for conversion and that
+	#file is used to create a dictionary to save them
 	if (conversion=="TRUE" or conversion=="T" or conversion=="true"):
 		convGeneSet=os.path.abspath(args.setConvGene)
 		dict_conv=conv_dict('conv',convGeneSet)
-	
+
+	#creating a dictionary of SpecX using idmap file (format: )
 	dict_sp1id=idMap_dict('sp1id',sp1idmap)
 	#pprint.pprint(dict_sp1id)
 	#print('Flipped',flipped)
+	#creating a dictionary to store best reciprocal hits (format: )
 	dict_brh=brh_dict('brh',brhsp1sp2,flipped)
+	# creating a dictionary of DMEL using idmap file (format: )
 	dict_sp2id=idMap2_dict('sp2id',sp2idmap)
+	# creating a dictionary to save symbol of genes (format: )
 	dict_symb=geneSymbol_dict('symbol',symbolGene)
 	
 	#pprint.pprint(dict_symb)
+	#creating list of paralog lists for specX and DMEL
 	pc1=paralogs('pc1',sp1pc97)
 	pc2=paralogs('pc2',sp2pc97)
 
+	#creating two intermediate files that will store information regarding orthologs and paralogs
 	f=open(namesp1+'_temp.txt','w')
 	f.write('GeneName_TC'+'\t'+'GeneName_OGid'+'\t'+'NoParalogOrListOfParalogs'+'\t'+'ifParalogHasOrtholog'+'\t'+'Ortholog'+'\n')
 	f1=open(namesp1+'_final.txt','w')
 	f1.write('GeneName'+'\t'+'ParalogsThatHaveOrthologs'+'\t'+'GeneSymbolParalogs'+'\t'+'Orthologs'+'\t'+'GeneSymbolOrthologs'+'\n')
+
+	#opening geneSet file that has 1 gene per line (all of genes extracted from its gff) and finding out if there are any orthologs or/and paralogs present wrt DMEL, if present write into two temp files created before.. to use later on to edit SCRMshaw prediction file to add respective ortho/para data in it
 	with open(geneSet,'r') as gS, open(namesp1+'_temp.txt','a') as g1,open(namesp1+'_final.txt','a') as f1:
 		for line in gS:
 			geneName=line.rstrip()
 			g1.write(geneName)
 			#f1.write(geneName+'\t')
+			# if there is a step of conversion of gene Naming involved, then making sure to use the right one using the dictioanary created previously
 			if (conversion=="TRUE" or conversion=="T" or conversion=="true"):
 				#print('require c')
 				if geneName.split(separator)[1] in dict_conv:
 					f1.write(dict_conv[geneName.split(separator)[1]]+'\t')
 				else:
 					f1.write(geneName+'\t')
+			# if not, then go ahead with line one of gene name
 			else:
 				f1.write(geneName+'\t')
+
+			#if gene is present in the idMap dictionary of Spec X
 			if geneName in dict_sp1id:
 			   #print('present')
+			   	# write the id of this gene in temp file
 				g1.write('\t'+dict_sp1id[geneName])
-			   #check if has paralogs
+			   #using the id of geneName check to see if its present in paralog file (using pc list created before)
 				if any(dict_sp1id[geneName] in sublist for sublist in pc1):
 					#g1.write('\t'+'Has paralog')
 					paralogListIndex=find(dict_sp1id[geneName],pc1)
