@@ -213,7 +213,7 @@ def main():
                         # print("---Has Ortholog--") #probably no need to look at paralogs then, even if they are there, they wont be in brh file right?
                         # g1.write(geneName+'\t'+dict_sp1id[geneName]+'\t'+'Has parlogs:'+str('sublist')+'\t'+dict_brh[dict_sp1id[geneName]]+'\t'+dict_sp2id[dict_brh[dict_sp1id[geneName]]]+'\n')
                         g1.write(
-                            geneName2 + '\t' + dict_sp1id[geneName2] + '\t' + dict_brh[dict_sp1id[geneName]] + '__' +
+                            geneName2 + '\t' + dict_sp1id[geneName] + '\t' + dict_brh[dict_sp1id[geneName]] + '__' +
                             dict_sp2id[dict_brh[dict_sp1id[geneName]]])
                         #	f1.write('\t'+dict_sp2id[dict_brh[dict_sp1id[geneName]]])
                         f1a.write(geneName2 + '\t' + dict_sp2id[dict_brh[dict_sp1id[geneName]]])
@@ -237,7 +237,7 @@ def main():
                 else:  # if not present in BRH file
                     # print(dict_sp1id[geneName])
                     # print("---NO Ortholog--")
-                    g1.write(geneName2 + '\t' + dict_sp1id[geneName2] + '\t' + 'NO ortholog')
+                    g1.write(geneName2 + '\t' + dict_sp1id[geneName] + '\t' + 'NO ortholog')
                     f1a.write(geneName2 + '\t' + 'NoDirectOrtholog' + '\t' + 'NULL')
                     noOrigOrtholog = 'True'
 
@@ -309,8 +309,8 @@ def main():
     # pprint.pprint(dict_paralogs)
 
     # creating csv files for ortholog and paralog list
-    file_from_dict('orthologList', dict_orthologs)
-    file_from_dict('paralogList', dict_paralogs)
+    file_from_dict(namesp1 + '_orthologList', dict_orthologs)
+    file_from_dict(namesp1 + '_paralogList', dict_paralogs)
 
     orthologOutput = 'SO_' + scrmshawOutput
 
