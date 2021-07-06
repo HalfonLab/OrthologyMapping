@@ -167,10 +167,10 @@ def main():
     # creating two intermediate files that will store information regarding orthologs and paralogs
     g1 = open(namesp1 + '_temp.txt', 'w')
     g1.write(
-        'GeneName_TC' + '\t' + 'GeneName_OGid' + '\t' + 'Ortholog_id_symb' + '\t' + 'listOfParalogsIfAny' + '\t' + 'ifParalogHasOrtholog_id_symb' + '\n')
+        'GeneName_TC' + '\t' + 'GeneName_OGid' + '\t' + 'Ortholog_id_symb' + '\t' +'Dmel_paralogs'+'\t'+'Dmel_paralogs_ids'+'\t'+'Dmel_paralogs_Symbols'+'\t'+ 'listOfParalogsIfAny' + '\t' + 'ifParalogHasOrtholog_id_symb' + '\t' +'Dmel_Pparalogs'+'\t'+'Dmel_Pparalogs_ids'+'\t'+'Dmel_Pparalogs_Symbols'+'\n')
     f1a = open(namesp1 + '_final.txt', 'w')
     f1a.write(
-        'GeneName' + '\t' + 'Orthologs' + '\t' + 'GeneSymbolOrthologs' + '\t' +'Dmel_paralogs'+'\t'+'GeneSymbolDmel_paralogs'+'\t' +'ParalogsThatHaveOrthologs' + '\t' + 'GeneSymbolParalogs''\n')
+        'GeneName' + '\t' + 'Orthologs' + '\t' + 'GeneSymbolOrthologs' + '\t' +'Dmel_paralogs'+'\t'+'GeneSymbolDmel_paralogs'+'\t' +'ParalogsThatHaveOrthologs' + '\t' + 'GeneSymbolParalogs'+ '\t' +'Dmel_Pparalogs'+'\t'+'GeneSymbolDmel_Pparalogs'+'\n')
 
     # opening geneSet file that has 1 gene per line (all of genes extracted from its gff) and
     # finding out if there are any orthologs or/and paralogs present wrt DMEL, if present write into two temp files created before..
@@ -266,48 +266,26 @@ def main():
                                    # print("no FbgnID found")
                                     dmelsParalogsListFBgn.append('-')
                         if dmelsParalogsList!='':
-                            print(dmelsParalogsList)
-                            print(dmelsParalogsListFBgn)
-                            print(dmelsParalogsListFBgnSymb)
+                           # print(dmelsParalogsList)
+                            #print(dmelsParalogsListFBgn)
+                            #print(dmelsParalogsListFBgnSymb)
+                            g1.write('\t'+str(dmelsParalogsList)+'\t'+str(dmelsParalogsListFBgn)+'\t'+str(dmelsParalogsListFBgnSymb))
                             f1a.write('\t'+str(dmelsParalogsListFBgn)+'\t'+str(dmelsParalogsListFBgnSymb))
                         else:
+                            g1.write('\t'+'NoParalogs'+'\t'+'-'+'\t'+'-')
                             f1a.write('\t'+'NoParalogs' + '\t' + '-')
-                        #end-DMELs
-
-
-
-                            # paraOrtho = 0
-                            # #if you want to check any of the paralog also has ortholg, which wont be the case since the only paralog(ortho now) which had
-                            # #orthologs should be in brh, and other paralogs will never have it
-                            # for i in range(0, len(pc2[paralogListIndex2[0]])):
-                            #     # print(i)
-                            #     # print(pc1[paralogListIndex[0]][i])
-                            #     #if i == 0:
-                            #        # g1.write('\t')
-                            #     # g1.write('\t')
-                            #     # check if paralogs have otholog / or present in brh?
-                            #     if pc2[paralogListIndex2[0]][i] in dict_brh:
-                            #         paraOrtho += 1
-                            #         # name of paralog that has ortholog
-                            #         # g1.write(pc1[paralogListIndex[0]][i])
-                            #         if dict_brh[pc1[paralogListIndex[0]][i]] in dict_sp2id:
-                            #              print("This dmel paralog has ortholg")
-                            #             #will never have ortholofs
-
-                              #  if i!=0:
-                                    
-
+                        #end-DMELs paralogs for direct orthologs
 
 
                     else:  # id is not found in dictionary of ids--so no ortholog can be found
                         # print('id is not found in dictionary of ids')
-                        g1.write(geneName2 + '\t' + dict_sp1id[geneName2] + '\t' + 'NULL' + '\t' + 'NULL'+'\t' + 'NULL' + '\t' + 'NULL')
-                        f1a.write(geneName2 + '\t' + 'NULL' + '\t' + 'NULL'+'\t' + 'NULL' + '\t' + 'NULL')
+                        g1.write(geneName2 + '\t' + dict_sp1id[geneName2] + '\t' + 'NULL' + '\t' + 'NULL'+'\t' + 'NULL' + '\t' + 'NULL'+ '\t' + 'NULL'+'\t' + 'NULL' + '\t' + 'NULL')
+                        f1a.write(geneName2 + '\t' + 'NULL' + '\t' + 'NULL'+'\t' + 'NULL' + '\t' + 'NULL'+'\t'+'NULL' + '\t' + 'NULL')
 
                 else:  # if not present in BRH file
                     # print(dict_sp1id[geneName])
                     # print("---NO Ortholog--")
-                    g1.write(geneName2 + '\t' + dict_sp1id[geneName] + '\t' + 'NO ortholog')
+                    g1.write(geneName2 + '\t' + dict_sp1id[geneName] + '\t' + 'NO ortholog'+'\t'+'-'+'\t'+'-'+'\t'+'-')
                     f1a.write(geneName2 + '\t' + 'NoDirectOrtholog' + '\t' + 'NULL'+'\t'+'-'+'\t'+'-')
                     noOrigOrtholog = 'True'
 
@@ -326,8 +304,8 @@ def main():
                         # if  this index [1] item is 1: that means the paralog at position 0 might have ortholog might not > check if it does
                         if paralogListIndex[1] == 0:
                             #	print("No Ortholog of its following paralogs",str(pc1[paralogListIndex[0]]))
-                            f1a.write('\t' + 'HasParalogButNoChanceOfOrthologOfParalogs' + '\t' + 'NULL')
-                            g1.write('\t' + str(pc1[paralogListIndex[0]]) + '\t' + 'NULL')
+                            f1a.write('\t' + 'HasParalogButNoChanceOfOrthologOfParalogs' + '\t' + '-'+'\t'+'-'+'\t'+'-')
+                            g1.write('\t' + str(pc1[paralogListIndex[0]]) + '\t' + 'NULL'+'\t'+'-'+'\t'+'-'+'\t'+'-')
                         #paralog can only have ortholog if its not the first one in 97 pc file
                         elif paralogListIndex[1] != 0:
                             # print("Its paralog may have an ortholog",str(pc1[paralogListIndex[0]]))
@@ -335,6 +313,12 @@ def main():
                             if pc1[paralogListIndex[0]][0] in dict_brh:  # its paralog does have  ortholog
                                 #	print("Yes its paralog DOES have an ortholog- see below")
                                 if dict_brh[pc1[paralogListIndex[0]][0]] in dict_sp2id:
+
+                                    # initializing all variables used for dmels paralogs
+                                    dmelsParalogsParalogsList = ''
+                                    dmelsParalogsParalogsListFBgn = []
+                                    dmelsParalogsParalogsListFBgnSymb = []
+
                                     #	print(pc1[paralogListIndex[0]][0]+'--'+dict_brh[pc1[paralogListIndex[0]][0]]+'__'+dict_sp2id[dict_brh[pc1[paralogListIndex[0]][0]]])
                                     g1.write('\t' + str(pc1[paralogListIndex[0]]) + '\t' + pc1[paralogListIndex[0]][
                                         0] + '--' + dict_brh[pc1[paralogListIndex[0]][0]] + '__' + dict_sp2id[
@@ -356,23 +340,42 @@ def main():
                                         # has paralogs , printing those here
                                         # find where is it located on the list
                                         paralogListIndex3 = find(dict_brh[pc1[paralogListIndex[0]][0]], pc2)
-                                        print('P list of dmel paralogs: ' + str(pc2[paralogListIndex3[0]]))
-
+                                    #    print('P list of dmel paralogs: ' + str(pc2[paralogListIndex3[0]]))
+                                        dmelsParalogsParalogsList = pc2[paralogListIndex3[0]]
                                         # go through each of these paralogs and list their symbols
                                         for i in range(0, len(pc2[paralogListIndex3[0]])):
 
                                             # check each para for its symbol
                                             # first check if it has Fbgn id
                                             if pc2[paralogListIndex3[0]][i] in dict_sp2id:
-                                                print("Fbgn id for this paralog, ", pc2[paralogListIndex3[0]][i],
-                                                      " is: ", dict_sp2id[pc2[paralogListIndex3[0]][i]])
-
+                                               # print("Fbgn id for this paralog, ", pc2[paralogListIndex3[0]][i],
+                                                #      " is: ", dict_sp2id[pc2[paralogListIndex3[0]][i]])
+                                                dmelsParalogsParalogsListFBgn.append(dict_sp2id[pc2[paralogListIndex3[0]][i]])
                                                 # check for symbols
                                                 if dict_sp2id[pc2[paralogListIndex3[0]][i]] in dict_symb:
-                                                    print("and the symbol is: ",
-                                                          dict_symb[dict_sp2id[pc2[paralogListIndex3[0]][i]]])
+                                                   # print("and the symbol is: ",
+                                                       #   dict_symb[dict_sp2id[pc2[paralogListIndex3[0]][i]]])
+                                                    dmelsParalogsParalogsListFBgnSymb.append(
+                                                        dict_symb[dict_sp2id[pc2[paralogListIndex3[0]][i]]])
                                                 else:
-                                                    print("but doesnt have symbol")
+                                                    #print("but doesnt have symbol")
+                                                    dmelsParalogsParalogsListFBgnSymb.append('-')
+                                            else:
+                                                # print("no FbgnID found")
+                                                dmelsParalogsParalogsListFBgn.append('-')
+                                    if dmelsParalogsParalogsList != '':
+                                        # print(dmelsParalogsList)
+                                        # print(dmelsParalogsListFBgn)
+                                        # print(dmelsParalogsListFBgnSymb)
+                                        g1.write('\t' + str(dmelsParalogsParalogsList) + '\t' + str(
+                                            dmelsParalogsParalogsListFBgn) + '\t' + str(dmelsParalogsParalogsListFBgnSymb))
+                                        f1a.write('\t' + str(dmelsParalogsParalogsListFBgn) + '\t' + str(
+                                            dmelsParalogsParalogsListFBgnSymb))
+                                    else:
+                                        g1.write('\t' + 'NoParalogsParalogs' + '\t' + '-' + '\t' + '-')
+                                        f1a.write('\t' + 'NoParalogsParalogs' + '\t' + '-')
+                                    # end-DMELs paralogs for paralogs orthologs
+
                                     # end-DMELs
 
 
@@ -385,22 +388,22 @@ def main():
 
                             else:  # its paralog also doesnt have any ortholog
                                 # print("no its paralog also doesnt have any ortholog")
-                                g1.write('\t' + str(pc1[paralogListIndex[0]]) + '\t' + 'NULL')
-                                f1a.write('\t' + 'HasParalogButNoOrthologOfParalogs' + '\t' + 'NULL')
+                                g1.write('\t' + str(pc1[paralogListIndex[0]]) + '\t' + '-'+'\t'+'-'+'\t'+'-'+'\t'+'-')
+                                f1a.write('\t' + 'HasParalogButNoOrthologOfParalogs' + '\t' + '-'+'\t'+'-'+'\t'+'-')
 
                     else:  # not found in 97 pc file
                         # print(" doesnt have paralogs")
-                        f1a.write('\t' + 'NoParalogsFound' + '\t' + '-')
-                        g1.write('\t' + 'NoParalogs' + '\t' + '-')
+                        f1a.write('\t' + 'NoParalogsFound' + '\t' + '-'+'\t'+'-'+'\t'+'-')
+                        g1.write('\t' + 'NoParalogs' + '\t' + '-'+'\t'+'-'+'\t'+'-'+'\t'+'-')
 
                 else:  # ortholog is present, no need to look at paralog
                     #	print(" doesnt need paralogs")
-                    f1a.write('\t' + 'NoNeedOfParalogs' + '\t' + 'NULL')
-                    g1.write('\t' + '-' + '\t' + '-')
+                    f1a.write('\t' + 'NoNeedOfParalogs' + '\t' + '-'+'\t'+'-'+'\t'+'-')
+                    g1.write('\t' + '-' + '\t' + '-'+'\t'+'-'+'\t'+'-'+'\t'+'-')
 
             else:  # gene id not found in idmap--nothing else could be looked up
-                g1.write(geneName2 + '\t' + '-' + '\t' + '-' + '\t' + '-' + '\t' + '-'+ '\t' + '-' + '\t' + '-')
-                f1a.write(geneName + '\t' + 'geneIDnotMapped' + '\t' + '-' + '\t' + '-' + '\t' + '-'+ '\t' + '-' + '\t' + '-')
+                g1.write(geneName2 + '\t' + '-' + '\t' + '-' + '\t' + '-' + '\t' + '-'+ '\t' + '-' + '\t' + '-'+'\t'+'-'+'\t'+'-'+'\t'+'-'+'\t'+'-')
+                f1a.write(geneName + '\t' + 'geneIDnotMapped' + '\t' + '-' + '\t' + '-' + '\t' + '-'+ '\t' + '-' + '\t' + '-'+'\t'+'-'+'\t'+'-')
             # for sublist in pc1:
             # for item in sublist:
             g1.write('\n')
