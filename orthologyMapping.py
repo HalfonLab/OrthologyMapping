@@ -419,8 +419,8 @@ def main():
     # pprint.pprint(dict_paralogs)
 
     # creating csv files for ortholog and paralog list
-    file_from_dict(namesp1 + '_orthologList', dict_orthologs)
-    file_from_dict(namesp1 + '_paralogList', dict_paralogs)
+   # file_from_dict(namesp1 + '_orthologList', dict_orthologs)
+    #file_from_dict(namesp1 + '_paralogList', dict_paralogs)
 
     orthologOutput = 'SO_' + scrmshawOutput
 
