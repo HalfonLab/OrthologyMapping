@@ -93,8 +93,8 @@ def orthologs_dict(nameOfODict_orth, nameOfDict_para, fileO):
         for row in rows:
             if row[2] != 'NULL' and row[2] != '-':
                 nameOfODict_orth[row[0]] = row[2]
-            if row[4] != 'NULL' and row[4] != '-':
-                nameOfDict_para[row[0]] = row[4].strip()
+            if row[6] != 'NULL' and row[6] != '-':
+                nameOfDict_para[row[0]] = row[6].strip()
 
     return (nameOfODict_orth, nameOfDict_para)
 
