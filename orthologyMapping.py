@@ -4,8 +4,13 @@
 #
 # (c) Hasiba Asma July 2020
 # Commented: June 2021
-# use after post processing of SCRMshaw to get ortholog/paralog wrt DMEL
+# this script can be used to get ortholog/paralog of species X wrt DMEL for each gene (list provided by user)
+# or after post processing of SCRMshaw to get ortholog/paralog wrt DMEL
 # input files can be downloaded from https://ezmeta.unige.ch/i5k/
+# files needed for X and DMEL species include DMELA.idmap.txt, X.idmap.txt, DMELA.97.pc.txt, X.97.pc.txt, X_DMELA.brh, listOfgenes.txt(1 gene in a line), fb_synonym_fb_2020_02.tsv (fly symbol file)
+# e.g if you have files for AGAM from ^ above link you can run the following command to get list of orthologs and paralogs
+# ../orthologs.py -np1 agamb -sp1id AGAMB.idmap.txt -sp1pc AGAMB.97pc.txt -brh AGAMB_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet AGAM_4.9_genes -symb fb_synonym_fb_2020_02.tsv -conv false
+# and in addition if you want to convert SCRMshaw output to file which has DMEL ortho/paralogs use -so flag and provide scrmshaw output
 #updated and commented June 2021
 ################################################################
 
@@ -146,7 +151,7 @@ def main():
     parser.add_argument('-setConv', '--setConvGene', help='conversion file')
     parser.add_argument('-flip', '--flipped', help='if in brh DMEL:specie1 set it to False', default='True')
     parser.add_argument('-sep', '--separator', help='if separator is not colon, provide its value', default=':')
-    parser.add_argument('-so', '--scrmshawOutput', help='SO')
+    parser.add_argument('-so', '--scrmshawOutput', help='if you want to get ortho/paralogs in scrmshaw output, provide scrmhsaw output file here, else leave this parameter',default='NoSCRM')
     args = parser.parse_args()
     # absolute path
     namesp1 = args.namesp1
@@ -161,7 +166,8 @@ def main():
     flipped = (args.flipped).lower()
     separator = args.separator
     scrmshawOutput = (args.scrmshawOutput)
-    scrmshawOutputPath = os.path.abspath(scrmshawOutput)
+    if (scrmshawOutput != 'NoSCRM'):
+        scrmshawOutputPath = os.path.abspath(scrmshawOutput)
 
     # Depending on naming convention of genes used for SCRMshaw and orthoDB, you might need to convert them to same convention first
     # and if there is need of conversion (or conversion=true), user need to provide the respective file needed for conversion and that
@@ -447,236 +453,237 @@ def main():
     orthologOutput = 'SO_' + scrmshawOutput
 
     #need to fix it at some point, exclude anything useless-- op stuff (June 22)
-    with open(scrmshawOutputPath, 'r') as so, open(orthologOutput, 'w') as fo:
-        for line in so:
-            cols = line.split('\t')
+    if (scrmshawOutput != 'NoSCRM'):
+        with open(scrmshawOutputPath, 'r') as so, open(orthologOutput, 'w') as fo:
+            for line in so:
+                cols = line.split('\t')
 
-            # Check col 5 and col 10
-            # To reduce calculation
-            if cols[5] == cols[10]:
-                # if one gene
-                if cols[5].find(',') == -1:
-                    # In theory shouldnt enter here ever
-                    # check if col 5 has ortholog or paralog or both
-                    if (cols[5] in dict_orthologs) and (cols[5] not in dict_paralogs):
-                        ortho_para1 = dict_orthologs[cols[5]] + '_o_'
-                    if (cols[5] in dict_paralogs) and (cols[5] not in dict_orthologs):
-                        ortho_para1 = str(dict_paralogs[cols[5]]) + '_p_'
-                    if (cols[5] not in dict_paralogs) and (cols[5] not in dict_orthologs):
-                        ortho_para1 = '-'
-                    if (cols[5] in dict_paralogs) and (cols[5] in dict_orthologs):
-                        # check they both are similar or not
-                        if dict_orthologs[cols[5]] != dict_paralogs[cols[5]].strip(','):
-                            ortho_para1 = dict_orthologs[cols[5]] + '_o_,' + str(dict_paralogs[cols[5]]) + '_p_'
-                        else:
-                            ortho_para1 = dict_orthologs[cols[5]] + '_op_'
-
-                    fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
-                        5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
-                                 10] + '\t' + ortho_para1 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
-                             cols[15] + '\t' + cols[16] + '\t' + cols[17])
-
-                # if multiple genes
-
-                if cols[5].find(',') != -1:
-                    ortho_para1 = ''
-                    genes1 = cols[5].split(',')
-                    for i in range(0, len(genes1)):
-
-                        # check if col 5 1st gene has ortholog or paralog or both
-                        if (genes1[i] in dict_orthologs) and (genes1[i] not in dict_paralogs):
-                            ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,'
-                        if (genes1[i] in dict_paralogs) and (genes1[i] not in dict_orthologs):
-                            ortho_para1 = ortho_para1 + str(dict_paralogs[genes1[i]]) + '_p_,'
-                        if (genes1[i] not in dict_paralogs) and (genes1[i] not in dict_orthologs):
-                            ortho_para1 = ortho_para1 + '-'
-                        if (genes1[i] in dict_paralogs) and (genes1[i] in dict_orthologs):
+                # Check col 5 and col 10
+                # To reduce calculation
+                if cols[5] == cols[10]:
+                    # if one gene
+                    if cols[5].find(',') == -1:
+                        # In theory shouldnt enter here ever
+                        # check if col 5 has ortholog or paralog or both
+                        if (cols[5] in dict_orthologs) and (cols[5] not in dict_paralogs):
+                            ortho_para1 = dict_orthologs[cols[5]] + '_o_'
+                        if (cols[5] in dict_paralogs) and (cols[5] not in dict_orthologs):
+                            ortho_para1 = str(dict_paralogs[cols[5]]) + '_p_'
+                        if (cols[5] not in dict_paralogs) and (cols[5] not in dict_orthologs):
+                            ortho_para1 = '-'
+                        if (cols[5] in dict_paralogs) and (cols[5] in dict_orthologs):
                             # check they both are similar or not
-                            if dict_orthologs[genes1[i]] != dict_paralogs[genes1[i]].strip(','):
-                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,' + dict_paralogs[
-                                    genes1[i]] + '_p_,'
+                            if dict_orthologs[cols[5]] != dict_paralogs[cols[5]].strip(','):
+                                ortho_para1 = dict_orthologs[cols[5]] + '_o_,' + str(dict_paralogs[cols[5]]) + '_p_'
                             else:
-                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_op_,'
+                                ortho_para1 = dict_orthologs[cols[5]] + '_op_'
 
-                    fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
-                        5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
-                                 10] + '\t' + ortho_para1 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
-                             cols[15] + '\t' + cols[16] + '\t' + cols[17])
+                        fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
+                            5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
+                                     10] + '\t' + ortho_para1 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
+                                 cols[15] + '\t' + cols[16] + '\t' + cols[17])
 
+                    # if multiple genes
 
+                    if cols[5].find(',') != -1:
+                        ortho_para1 = ''
+                        genes1 = cols[5].split(',')
+                        for i in range(0, len(genes1)):
 
-            elif cols[5] != cols[10]:
+                            # check if col 5 1st gene has ortholog or paralog or both
+                            if (genes1[i] in dict_orthologs) and (genes1[i] not in dict_paralogs):
+                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,'
+                            if (genes1[i] in dict_paralogs) and (genes1[i] not in dict_orthologs):
+                                ortho_para1 = ortho_para1 + str(dict_paralogs[genes1[i]]) + '_p_,'
+                            if (genes1[i] not in dict_paralogs) and (genes1[i] not in dict_orthologs):
+                                ortho_para1 = ortho_para1 + '-'
+                            if (genes1[i] in dict_paralogs) and (genes1[i] in dict_orthologs):
+                                # check they both are similar or not
+                                if dict_orthologs[genes1[i]] != dict_paralogs[genes1[i]].strip(','):
+                                    ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,' + dict_paralogs[
+                                        genes1[i]] + '_p_,'
+                                else:
+                                    ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_op_,'
 
-                # CASE A
-                # Neither col 5 nor col 10 has more than one gene on it---
-                if cols[5].find(',') == -1 and cols[10].find(',') == -1:
-                    # check if col 5 has ortholog or paralog or both
-                    if (cols[5] in dict_orthologs) and (cols[5] not in dict_paralogs):
-                        ortho_para1 = dict_orthologs[cols[5]] + '_o_'
-                    if (cols[5] in dict_paralogs) and (cols[5] not in dict_orthologs):
-                        ortho_para1 = str(dict_paralogs[cols[5]]) + '_p_'
-                    if (cols[5] not in dict_paralogs) and (cols[5] not in dict_orthologs):
-                        ortho_para1 = '-'
-                    if (cols[5] in dict_paralogs) and (cols[5] in dict_orthologs):
-                        # check they both are similar or not
-                        if dict_orthologs[cols[5]] != dict_paralogs[cols[5]].strip(','):
-                            ortho_para1 = dict_orthologs[cols[5]] + '_o_,' + dict_paralogs[cols[5]] + '_p_'
-                        else:
-                            ortho_para1 = dict_orthologs[cols[5]] + '_op_'
-
-                    # fo.write(cols[0]+'\t'+cols[1]+'\t'+cols[2]+'\t'+cols[3]+'\t'+cols[4]+'\t'+cols[5]+'\t'+ortho_para+'\t'+cols[7]+'\t'+cols[8]+'\t'+cols[9]+'\t'+cols[10]+'\t'+cols[11]+'\t'+cols[12]+'\t'+cols[13]+'\t'+cols[14]+'\t'+cols[15]+'\t'+cols[16]+'\t'+cols[17])
-
-                    # check if col 10 has ortholog or paralog or both
-                    if (cols[10] in dict_orthologs) and (cols[10] not in dict_paralogs):
-                        ortho_para2 = dict_orthologs[cols[10]] + '_o_'
-                    if (cols[10] in dict_paralogs) and (cols[10] not in dict_orthologs):
-                        ortho_para2 = str(dict_paralogs[cols[10]]) + '_p_'
-                    if (cols[10] not in dict_paralogs) and (cols[10] not in dict_orthologs):
-                        ortho_para2 = '-'
-                    if (cols[10] in dict_paralogs) and (cols[10] in dict_orthologs):
-                        # check they both are similar or not
-                        if dict_orthologs[cols[10]] != dict_paralogs[cols[10]].strip(','):
-                            ortho_para2 = dict_orthologs[cols[10]] + '_o_,' + dict_paralogs[cols[10]] + '_p_'
-                        else:
-                            ortho_para2 = dict_orthologs[cols[10]] + '_op_'
-
-                    fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
-                        5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
-                                 10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
-                             cols[15] + '\t' + cols[16] + '\t' + cols[17])
+                        fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
+                            5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
+                                     10] + '\t' + ortho_para1 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
+                                 cols[15] + '\t' + cols[16] + '\t' + cols[17])
 
 
-                # CASE B
-                # Column 5 has more than 1 gene but col 10 has 1 gene only
-                elif cols[5].find(',') != -1 and cols[10].find(',') == -1:
-                    ortho_para1 = ''
-                    genes1 = cols[5].split(',')
-                    for i in range(0, len(genes1)):
 
-                        # check if col 5 1st gene has ortholog or paralog or both
-                        if (genes1[i] in dict_orthologs) and (genes1[i] not in dict_paralogs):
-                            ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,'
-                        if (genes1[i] in dict_paralogs) and (genes1[i] not in dict_orthologs):
-                            ortho_para1 = ortho_para1 + str(dict_paralogs[genes1[i]]) + '_p_,'
-                        if (genes1[i] not in dict_paralogs) and (genes1[i] not in dict_orthologs):
-                            ortho_para1 = ortho_para1 + '-'
-                        if (genes1[i] in dict_paralogs) and (genes1[i] in dict_orthologs):
+                elif cols[5] != cols[10]:
+
+                    # CASE A
+                    # Neither col 5 nor col 10 has more than one gene on it---
+                    if cols[5].find(',') == -1 and cols[10].find(',') == -1:
+                        # check if col 5 has ortholog or paralog or both
+                        if (cols[5] in dict_orthologs) and (cols[5] not in dict_paralogs):
+                            ortho_para1 = dict_orthologs[cols[5]] + '_o_'
+                        if (cols[5] in dict_paralogs) and (cols[5] not in dict_orthologs):
+                            ortho_para1 = str(dict_paralogs[cols[5]]) + '_p_'
+                        if (cols[5] not in dict_paralogs) and (cols[5] not in dict_orthologs):
+                            ortho_para1 = '-'
+                        if (cols[5] in dict_paralogs) and (cols[5] in dict_orthologs):
                             # check they both are similar or not
-                            if dict_orthologs[genes1[i]] != dict_paralogs[genes1[i]].strip(','):
-                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,' + dict_paralogs[
-                                    genes1[i]] + '_p_,'
+                            if dict_orthologs[cols[5]] != dict_paralogs[cols[5]].strip(','):
+                                ortho_para1 = dict_orthologs[cols[5]] + '_o_,' + dict_paralogs[cols[5]] + '_p_'
                             else:
-                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_op_,'
+                                ortho_para1 = dict_orthologs[cols[5]] + '_op_'
 
-                    # check if col 10 has ortholog or paralog or both
-                    if (cols[10] in dict_orthologs) and (cols[10] not in dict_paralogs):
-                        ortho_para2 = dict_orthologs[cols[10]] + '_o_'
-                    if (cols[10] in dict_paralogs) and (cols[10] not in dict_orthologs):
-                        ortho_para2 = str(dict_paralogs[cols[10]]) + '_p_'
-                    if (cols[10] not in dict_paralogs) and (cols[10] not in dict_orthologs):
-                        ortho_para2 = '-'
-                    if (cols[10] in dict_paralogs) and (cols[10] in dict_orthologs):
-                        # check they both are similar or not
-                        if dict_orthologs[cols[10]] != dict_paralogs[cols[10]].strip(','):
-                            ortho_para2 = dict_orthologs[cols[10]] + '_o_,' + dict_paralogs[cols[10]] + '_p_'
-                        else:
-                            ortho_para2 = dict_orthologs[cols[10]] + '_op_'
+                        # fo.write(cols[0]+'\t'+cols[1]+'\t'+cols[2]+'\t'+cols[3]+'\t'+cols[4]+'\t'+cols[5]+'\t'+ortho_para+'\t'+cols[7]+'\t'+cols[8]+'\t'+cols[9]+'\t'+cols[10]+'\t'+cols[11]+'\t'+cols[12]+'\t'+cols[13]+'\t'+cols[14]+'\t'+cols[15]+'\t'+cols[16]+'\t'+cols[17])
 
-                    fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
-                        5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
-                                 10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
-                             cols[15] + '\t' + cols[16] + '\t' + cols[17])
-
-
-                # CASE C
-                # 			#Column 5 has 1 gene but col 10 has more than 1 gene
-                #
-                elif cols[5].find(',') == -1 and cols[10].find(',') != -1:
-
-                    if (cols[5] in dict_orthologs) and (cols[5] not in dict_paralogs):
-                        ortho_para1 = dict_orthologs[cols[5]] + '_o_'
-                    if (cols[5] in dict_paralogs) and (cols[5] not in dict_orthologs):
-                        ortho_para1 = str(dict_paralogs[cols[5]]) + '_p_'
-                    if (cols[5] not in dict_paralogs) and (cols[5] not in dict_orthologs):
-                        ortho_para1 = '-'
-                    if (cols[5] in dict_paralogs) and (cols[5] in dict_orthologs):
-                        # check they both are similar or not
-                        if dict_orthologs[cols[5]] != dict_paralogs[cols[5]].strip(','):
-                            ortho_para1 = dict_orthologs[cols[5]] + '_o_,' + dict_paralogs[cols[5]] + '_p_'
-                        else:
-                            ortho_para1 = dict_orthologs[cols[5]] + '_op_'
-
-                    ortho_para2 = ''
-                    genes2 = cols[10].split(',')
-                    for i in range(0, len(genes2)):
-
-                        # check if col 5 1st gene has ortholog or paralog or both
-                        if (genes2[i] in dict_orthologs) and (genes2[i] not in dict_paralogs):
-                            ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,'
-                        if (genes2[i] in dict_paralogs) and (genes2[i] not in dict_orthologs):
-                            ortho_para2 = ortho_para2 + str(dict_paralogs[genes2[i]]) + '_p_,'
-                        if (genes2[i] not in dict_paralogs) and (genes2[i] not in dict_orthologs):
-                            ortho_para2 = ortho_para2 + '-'
-                        if (genes2[i] in dict_paralogs) and (genes2[i] in dict_orthologs):
+                        # check if col 10 has ortholog or paralog or both
+                        if (cols[10] in dict_orthologs) and (cols[10] not in dict_paralogs):
+                            ortho_para2 = dict_orthologs[cols[10]] + '_o_'
+                        if (cols[10] in dict_paralogs) and (cols[10] not in dict_orthologs):
+                            ortho_para2 = str(dict_paralogs[cols[10]]) + '_p_'
+                        if (cols[10] not in dict_paralogs) and (cols[10] not in dict_orthologs):
+                            ortho_para2 = '-'
+                        if (cols[10] in dict_paralogs) and (cols[10] in dict_orthologs):
                             # check they both are similar or not
-                            if dict_orthologs[genes2[i]] != dict_paralogs[genes2[i]].strip(','):
-                                ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,' + dict_paralogs[
-                                    genes2[i]] + '_p_,'
+                            if dict_orthologs[cols[10]] != dict_paralogs[cols[10]].strip(','):
+                                ortho_para2 = dict_orthologs[cols[10]] + '_o_,' + dict_paralogs[cols[10]] + '_p_'
                             else:
-                                ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_op_,'
+                                ortho_para2 = dict_orthologs[cols[10]] + '_op_'
 
-                    fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
-                        5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
-                                 10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
-                             cols[15] + '\t' + cols[16] + '\t' + cols[17])
+                        fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
+                            5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
+                                     10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
+                                 cols[15] + '\t' + cols[16] + '\t' + cols[17])
 
 
+                    # CASE B
+                    # Column 5 has more than 1 gene but col 10 has 1 gene only
+                    elif cols[5].find(',') != -1 and cols[10].find(',') == -1:
+                        ortho_para1 = ''
+                        genes1 = cols[5].split(',')
+                        for i in range(0, len(genes1)):
 
-                # CASE D
-                # Column 5 and col 10 both have more than 1 gene  but different
-                elif cols[5].find(',') != -1 and cols[10].find(',') != -1:
-                    ortho_para1 = ''
-                    genes1 = cols[5].split(',')
-                    for i in range(0, len(genes1)):
+                            # check if col 5 1st gene has ortholog or paralog or both
+                            if (genes1[i] in dict_orthologs) and (genes1[i] not in dict_paralogs):
+                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,'
+                            if (genes1[i] in dict_paralogs) and (genes1[i] not in dict_orthologs):
+                                ortho_para1 = ortho_para1 + str(dict_paralogs[genes1[i]]) + '_p_,'
+                            if (genes1[i] not in dict_paralogs) and (genes1[i] not in dict_orthologs):
+                                ortho_para1 = ortho_para1 + '-'
+                            if (genes1[i] in dict_paralogs) and (genes1[i] in dict_orthologs):
+                                # check they both are similar or not
+                                if dict_orthologs[genes1[i]] != dict_paralogs[genes1[i]].strip(','):
+                                    ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,' + dict_paralogs[
+                                        genes1[i]] + '_p_,'
+                                else:
+                                    ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_op_,'
 
-                        # check if col 5 1st gene has ortholog or paralog or both
-                        if (genes1[i] in dict_orthologs) and (genes1[i] not in dict_paralogs):
-                            ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,'
-                        if (genes1[i] in dict_paralogs) and (genes1[i] not in dict_orthologs):
-                            ortho_para1 = ortho_para1 + str(dict_paralogs[genes1[i]]) + '_p_,'
-                        if (genes1[i] not in dict_paralogs) and (genes1[i] not in dict_orthologs):
-                            ortho_para1 = ortho_para1 + '-'
-                        if (genes1[i] in dict_paralogs) and (genes1[i] in dict_orthologs):
+                        # check if col 10 has ortholog or paralog or both
+                        if (cols[10] in dict_orthologs) and (cols[10] not in dict_paralogs):
+                            ortho_para2 = dict_orthologs[cols[10]] + '_o_'
+                        if (cols[10] in dict_paralogs) and (cols[10] not in dict_orthologs):
+                            ortho_para2 = str(dict_paralogs[cols[10]]) + '_p_'
+                        if (cols[10] not in dict_paralogs) and (cols[10] not in dict_orthologs):
+                            ortho_para2 = '-'
+                        if (cols[10] in dict_paralogs) and (cols[10] in dict_orthologs):
                             # check they both are similar or not
-                            if dict_orthologs[genes1[i]] != dict_paralogs[genes1[i]].strip(','):
-                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,' + dict_paralogs[
-                                    genes1[i]] + '_p_,'
+                            if dict_orthologs[cols[10]] != dict_paralogs[cols[10]].strip(','):
+                                ortho_para2 = dict_orthologs[cols[10]] + '_o_,' + dict_paralogs[cols[10]] + '_p_'
                             else:
-                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_op_,'
+                                ortho_para2 = dict_orthologs[cols[10]] + '_op_'
 
-                    ortho_para2 = ''
-                    genes2 = cols[10].split(',')
-                    for i in range(0, len(genes2)):
+                        fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
+                            5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
+                                     10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
+                                 cols[15] + '\t' + cols[16] + '\t' + cols[17])
 
-                        # check if col 5 1st gene has ortholog or paralog or both
-                        if (genes2[i] in dict_orthologs) and (genes2[i] not in dict_paralogs):
-                            ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,'
-                        if (genes2[i] in dict_paralogs) and (genes2[i] not in dict_orthologs):
-                            ortho_para2 = ortho_para2 + str(dict_paralogs[genes2[i]]) + '_p_,'
-                        if (genes2[i] not in dict_paralogs) and (genes2[i] not in dict_orthologs):
-                            ortho_para2 = ortho_para2 + '-'
-                        if (genes2[i] in dict_paralogs) and (genes2[i] in dict_orthologs):
+
+                    # CASE C
+                    # 			#Column 5 has 1 gene but col 10 has more than 1 gene
+                    #
+                    elif cols[5].find(',') == -1 and cols[10].find(',') != -1:
+
+                        if (cols[5] in dict_orthologs) and (cols[5] not in dict_paralogs):
+                            ortho_para1 = dict_orthologs[cols[5]] + '_o_'
+                        if (cols[5] in dict_paralogs) and (cols[5] not in dict_orthologs):
+                            ortho_para1 = str(dict_paralogs[cols[5]]) + '_p_'
+                        if (cols[5] not in dict_paralogs) and (cols[5] not in dict_orthologs):
+                            ortho_para1 = '-'
+                        if (cols[5] in dict_paralogs) and (cols[5] in dict_orthologs):
                             # check they both are similar or not
-                            if dict_orthologs[genes2[i]] != dict_paralogs[genes2[i]].strip(','):
-                                ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,' + dict_paralogs[
-                                    genes2[i]] + '_p_,'
+                            if dict_orthologs[cols[5]] != dict_paralogs[cols[5]].strip(','):
+                                ortho_para1 = dict_orthologs[cols[5]] + '_o_,' + dict_paralogs[cols[5]] + '_p_'
                             else:
-                                ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_op_,'
+                                ortho_para1 = dict_orthologs[cols[5]] + '_op_'
 
-                    fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
-                        5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
-                                 10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
-                             cols[15] + '\t' + cols[16] + '\t' + cols[17])
+                        ortho_para2 = ''
+                        genes2 = cols[10].split(',')
+                        for i in range(0, len(genes2)):
+
+                            # check if col 5 1st gene has ortholog or paralog or both
+                            if (genes2[i] in dict_orthologs) and (genes2[i] not in dict_paralogs):
+                                ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,'
+                            if (genes2[i] in dict_paralogs) and (genes2[i] not in dict_orthologs):
+                                ortho_para2 = ortho_para2 + str(dict_paralogs[genes2[i]]) + '_p_,'
+                            if (genes2[i] not in dict_paralogs) and (genes2[i] not in dict_orthologs):
+                                ortho_para2 = ortho_para2 + '-'
+                            if (genes2[i] in dict_paralogs) and (genes2[i] in dict_orthologs):
+                                # check they both are similar or not
+                                if dict_orthologs[genes2[i]] != dict_paralogs[genes2[i]].strip(','):
+                                    ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,' + dict_paralogs[
+                                        genes2[i]] + '_p_,'
+                                else:
+                                    ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_op_,'
+
+                        fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
+                            5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
+                                     10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
+                                 cols[15] + '\t' + cols[16] + '\t' + cols[17])
+
+
+
+                    # CASE D
+                    # Column 5 and col 10 both have more than 1 gene  but different
+                    elif cols[5].find(',') != -1 and cols[10].find(',') != -1:
+                        ortho_para1 = ''
+                        genes1 = cols[5].split(',')
+                        for i in range(0, len(genes1)):
+
+                            # check if col 5 1st gene has ortholog or paralog or both
+                            if (genes1[i] in dict_orthologs) and (genes1[i] not in dict_paralogs):
+                                ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,'
+                            if (genes1[i] in dict_paralogs) and (genes1[i] not in dict_orthologs):
+                                ortho_para1 = ortho_para1 + str(dict_paralogs[genes1[i]]) + '_p_,'
+                            if (genes1[i] not in dict_paralogs) and (genes1[i] not in dict_orthologs):
+                                ortho_para1 = ortho_para1 + '-'
+                            if (genes1[i] in dict_paralogs) and (genes1[i] in dict_orthologs):
+                                # check they both are similar or not
+                                if dict_orthologs[genes1[i]] != dict_paralogs[genes1[i]].strip(','):
+                                    ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_o_,' + dict_paralogs[
+                                        genes1[i]] + '_p_,'
+                                else:
+                                    ortho_para1 = ortho_para1 + dict_orthologs[genes1[i]] + '_op_,'
+
+                        ortho_para2 = ''
+                        genes2 = cols[10].split(',')
+                        for i in range(0, len(genes2)):
+
+                            # check if col 5 1st gene has ortholog or paralog or both
+                            if (genes2[i] in dict_orthologs) and (genes2[i] not in dict_paralogs):
+                                ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,'
+                            if (genes2[i] in dict_paralogs) and (genes2[i] not in dict_orthologs):
+                                ortho_para2 = ortho_para2 + str(dict_paralogs[genes2[i]]) + '_p_,'
+                            if (genes2[i] not in dict_paralogs) and (genes2[i] not in dict_orthologs):
+                                ortho_para2 = ortho_para2 + '-'
+                            if (genes2[i] in dict_paralogs) and (genes2[i] in dict_orthologs):
+                                # check they both are similar or not
+                                if dict_orthologs[genes2[i]] != dict_paralogs[genes2[i]].strip(','):
+                                    ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_o_,' + dict_paralogs[
+                                        genes2[i]] + '_p_,'
+                                else:
+                                    ortho_para2 = ortho_para2 + dict_orthologs[genes2[i]] + '_op_,'
+
+                        fo.write(cols[0] + '\t' + cols[1] + '\t' + cols[2] + '\t' + cols[3] + '\t' + cols[4] + '\t' + cols[
+                            5] + '\t' + ortho_para1 + '\t' + cols[7] + '\t' + cols[8] + '\t' + cols[9] + '\t' + cols[
+                                     10] + '\t' + ortho_para2 + '\t' + cols[12] + '\t' + cols[13] + '\t' + cols[14] + '\t' +
+                                 cols[15] + '\t' + cols[16] + '\t' + cols[17])
 
 
 # ./orthologyMapping.py -np1 tcas -sp1id TCAST.idmap.txt -sp1pc TCAST.97pc.txt -brh TCAST_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet OSG2geneSet.txt -symb fb_synonym_fb_2020_02.tsv -conv true -setConv OGS3toOGS2_conversion.txt -so scrmshawOutput_peaksCalled_antennal_lobe_imm_1388_peaks.bed -sep ':' -flip TRUE
