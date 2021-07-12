@@ -114,7 +114,10 @@ def orthologs_dict(nameOfODict_orth, nameOfDict_para, fileO):
             elif (row[4] =='-' or row[4] == 'NULL') and row[1]=='NoDirectOrtholog':
 
                 if (row[6] != 'NULL' and row[6] != '-') and (row[8] =='NULL' or row[8]=='-\n') :
-                    nameOfDict_para[row[0]] = row[6].strip()
+                    if row[6]!= 'NoSymbolFound':
+                        nameOfDict_para[row[0]] = row[6].strip()
+                    else:
+                        nameOfDict_para[row[0]] = row[5].strip()
                 elif (row[6] != 'NULL' and row[6] != '-') and (row[8] !='NULL' and row[8]!='-\n'):
                     ppsall= row[8].lstrip('[').rstrip(']\n').replace("'","")
                     pps=ppsall.split(',')
